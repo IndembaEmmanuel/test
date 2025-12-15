@@ -180,8 +180,8 @@ docker build -t harbor.mydrinkee.com/devtest/votre-prenom:v1.0.0 .
 ### 3. Login au registre
 ```bash
 docker login harbor.mydrinkee.com
-# Username: robot$devtest
-# Password: pTa2ES1AM2YWbOoVxUCoXlqy16rhEeiZ
+# Username: xxxxxx
+# Password: xxxxxx
 ```
 
 ### 4. Push l'image
