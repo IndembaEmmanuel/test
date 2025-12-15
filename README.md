@@ -1,36 +1,248 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Flashboard - Mini-app de gestion d'événements
 
-## Getting Started
+Application full-stack permettant de gérer et visualiser des événements avec leurs statistiques (litres consommés, chiffre d'affaires).
 
-First, run the development server:
+## Table des matières
 
+- [Fonctionnalités](#fonctionnalités)
+- [Technologies utilisées](#technologies-utilisées)
+- [Lancement rapide](#lancement-rapide)
+- [Développement local](#développement-local)
+- [API Endpoints](#api-endpoints)
+- [Docker Registry (Bonus)](#docker-registry-bonus)
+- [Améliorations futures](#améliorations-futures)
+
+## Fonctionnalités
+
+- **Backend API REST** (Node.js + Express)
+  - GET `/events` : Liste complète des événements
+  - GET `/stats/summary` : Statistiques globales (total litres, CA, lieux distincts)
+
+- **Frontend** (Next.js 16 + React + TypeScript + Tailwind CSS)
+  - Affichage des événements dans un tableau
+  - Cartes de statistiques (total litres, CA, nombre de lieux)
+  - **Graphiques interactifs** (Recharts)
+    - Graphique en barres : CA et litres par événement
+    - Graphique en camembert : Distribution du CA par lieu
+  - Filtres par lieu et date
+  - Gestion des états de chargement et d'erreur
+  - Interface responsive
+
+## Technologies utilisées
+
+### Backend
+- **Node.js 20** avec modules ES6
+- **Express 4** pour l'API REST
+- **CORS** pour permettre les requêtes cross-origin
+
+### Frontend
+- **Next.js 16** avec App Router
+- **React 19** avec hooks
+- **TypeScript 5** pour le typage statique
+- **Tailwind CSS 4** pour le styling
+- **Recharts** pour les graphiques interactifs
+
+### Infrastructure
+- **Docker** et **Docker Compose** pour la conteneurisation
+- **Multi-stage builds** pour optimiser les images
+
+## Lancement rapide
+
+### Avec Docker Compose (recommandé)
+
+1. Clonez le projet et naviguez dans le dossier :
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd my-app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Lancez l'application :
+```bash
+docker-compose up --build
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Accédez à l'application :
+   - Frontend : [http://localhost:3000](http://localhost:3000)
+   - API : [http://localhost:8080](http://localhost:8080)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Sans Docker
 
-## Learn More
+#### Lancer le backend
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd api
+npm install
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+L'API sera disponible sur [http://localhost:8080](http://localhost:8080)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### Lancer le frontend
 
-## Deploy on Vercel
+```bash
+# À la racine du projet
+npm install
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Le frontend sera disponible sur [http://localhost:3000](http://localhost:3000)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Développement local
+
+### Variables d'environnement
+
+Copiez le fichier `.env.example` en `.env.local` :
+
+```bash
+cp .env.example .env.local
+```
+
+Contenu par défaut :
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+### Structure du projet
+
+```
+my-app/
+├── api/                    # Backend Express
+│   ├── server.js          # Serveur API avec données
+│   ├── package.json
+│   └── Dockerfile
+├── src/
+│   └── app/
+│       ├── page.tsx       # Page principale avec tableau et filtres
+│       ├── layout.tsx
+│       └── globals.css
+├── docker-compose.yml     # Configuration Docker Compose
+├── Dockerfile            # Dockerfile frontend
+├── .env.example
+└── README.md
+```
+
+## API Endpoints
+
+### GET /events
+Retourne la liste complète des événements.
+
+**Réponse :**
+```json
+[
+  {
+    "id": 1,
+    "name": "OM vs Brest",
+    "date": "2025-06-15",
+    "venue": "Orange Vélodrome",
+    "liters": 780.5,
+    "revenue_eur": 40250
+  },
+  ...
+]
+```
+
+### GET /stats/summary
+Retourne les statistiques globales.
+
+**Réponse :**
+```json
+{
+  "total_liters": 2236.4,
+  "total_revenue_eur": 116250,
+  "distinct_venues": ["Orange Vélodrome", "Marseille", "Montpellier", "Nantes"]
+}
+```
+
+### GET /health
+Health check endpoint.
+
+**Réponse :**
+```json
+{
+  "status": "ok"
+}
+```
+
+## Docker Registry (Bonus)
+
+Pour pousser l'image du backend sur le registre Harbor :
+
+### 1. Installer les dépendances du backend
+```bash
+cd api
+npm install
+```
+
+### 2. Build l'image
+```bash
+docker build -t harbor.mydrinkee.com/devtest/votre-prenom:v1.0.0 .
+```
+
+### 3. Login au registre
+```bash
+docker login harbor.mydrinkee.com
+# Username: robot$devtest
+# Password: pTa2ES1AM2YWbOoVxUCoXlqy16rhEeiZ
+```
+
+### 4. Push l'image
+```bash
+docker push harbor.mydrinkee.com/devtest/votre-prenom:v1.0.0
+```
+
+**Note :** Remplacez `votre-prenom` par votre prénom réel.
+
+## Décisions techniques
+
+### Backend
+- **Node.js avec modules ES6** : Code moderne et plus lisible
+- **Données en mémoire** : Simplifie l'implémentation pour ce test (pas de base de données nécessaire)
+- **Express minimal** : Framework léger et rapide à mettre en place
+- **CORS activé** : Permet au frontend de communiquer avec l'API
+
+### Frontend
+- **Next.js 16 avec App Router** : Framework React moderne avec SSR/SSG
+- **Client Component** : Nécessaire pour les hooks (useState, useEffect)
+- **Tailwind CSS** : Styling rapide et responsive
+- **TypeScript** : Typage fort pour éviter les erreurs
+- **Filtres côté client** : Performant pour petit dataset, évite les requêtes API
+
+### Infrastructure
+- **Docker multi-stage builds** : Réduit la taille des images finales
+- **Docker Compose** : Orchestre facilement API + Frontend
+- **Réseau interne** : Les containers communiquent via un réseau Docker bridge
+
+## Améliorations futures
+
+Si j'avais plus de temps, j'ajouterais :
+
+### Fonctionnalités
+- **Graphiques supplémentaires** :
+  - Timeline des événements sur une échelle temporelle
+  - Graphique en ligne pour l'évolution du CA
+  - Graphique combiné litres/CA avec tendances
+- **Tri des colonnes** : Permettre de trier le tableau par n'importe quelle colonne
+- **Pagination** : Pour gérer de grands volumes de données
+- **Recherche full-text** : Rechercher dans tous les champs
+- **Export CSV/Excel** : Télécharger les données filtrées
+- **Mode sombre** : Améliorer l'expérience utilisateur
+
+### Technique
+- **Tests** : Jest pour le backend, React Testing Library pour le frontend
+- **Validation** : Schémas Zod pour valider les données
+- **Base de données** : PostgreSQL ou MongoDB pour la persistence
+- **Cache** : Redis pour optimiser les performances
+- **API pagination** : Endpoint avec limit/offset
+- **Logging** : Winston ou Pino pour les logs structurés
+- **Monitoring** : Prometheus + Grafana
+- **CI/CD** : GitHub Actions pour automatiser tests et déploiement
+- **Variables d'env sécurisées** : Secrets management avec Docker secrets
+
+### Sécurité
+- **Rate limiting** : Protéger l'API contre les abus
+- **Helmet.js** : Headers de sécurité
+- **Input validation** : Valider toutes les entrées utilisateur
+- **HTTPS** : Certificats SSL en production
+
+## Licence
+
+Projet de test technique - Tous droits réservés
